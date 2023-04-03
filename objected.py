@@ -16,11 +16,12 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GREY = (128, 128, 128)
+ORANGE = (255, 165, 0)
 
 # Set up animals
 RABBIT_SIZE = 10
-FOX_SIZE = 20
-GRASS_SIZE = 5
+FOX_SIZE = 15
+GRASS_SIZE = 7
 
 RABBIT_NUMBER = 50
 FOX_NUMBER = 5
@@ -47,6 +48,9 @@ class Rabbit:
         self.color = GREY
         self.eaten = False
 
+        self.time_to_live = 500
+        self.max_time_to_live = 500
+
         self.saved_direction = (0, 0)
         self.time_going_in_direction = 0
         self.time_to_change_direction = (60, 120)
@@ -63,6 +67,12 @@ class Rabbit:
             self.reproductive_timer = self.reproductive_cooldown
 
     def move(self, grass, foxes, rabbits):
+        if self.time_to_live <= 0:
+            rabbits.remove(self)
+            return
+        else:
+            self.time_to_live -= 1
+
         if self.reproductive_timer > 0:
             self.reproductive_timer -= 1
 
@@ -153,6 +163,7 @@ class Rabbit:
 
     def eat(self, grass, grass_list):
         grass_list.remove(grass)
+        self.time_to_live += self.max_time_to_live
         self.eaten = True
 
     def draw(self, screen):
@@ -167,11 +178,21 @@ class Fox:
         self.y = y
         self.size = FOX_SIZE
         self.speed = FOX_SPEED
-        self.color = RED
+        self.color = ORANGE
         self.eaten = False
         self.reproduce = False
 
+        self.time_to_live = 800
+        self.max_time_to_live = 800
+
     def move(self, rabbits, foxes):
+        if self.time_to_live <= 0:
+            foxes.remove(self)
+            return
+        else:
+            self.time_to_live -= 1
+
+
         # Move towards rabbits
         nearest_rabbit = None
         nearest_distance = 100000
@@ -229,6 +250,7 @@ class Fox:
 
     def eat(self, rabbit, rabbits):
         rabbits.remove(rabbit)
+        self.time_to_live = self.max_time_to_live
         self.eaten = True
 
     def draw(self, screen):
