@@ -1,6 +1,7 @@
 import random
 import math
 import pygame
+from threading import Thread
 
 RABBIT_SIZE = 10
 RABBIT_NUMBER = 50
@@ -30,11 +31,12 @@ class Rabbit:
         self.reproductive_cooldown = 600
         self.reproductive_timer = 0
 
-    def reproduce(self, nearest_rabbit, rabbits):
+    def reproduce(self, nearest_rabbit, rabbits, grass, foxes):
         if (self.reproductive_timer <= 0 and nearest_rabbit.reproductive_timer <= 0):
             new_rabbit = Rabbit(self.x, self.y, self.map_width, self.map_height, self.color)
             new_rabbit.reproductive_timer = new_rabbit.reproductive_cooldown
             rabbits.append(new_rabbit)
+            Thread(target = new_rabbit.live, args = (grass, foxes, rabbits)).start()
             nearest_rabbit.reproductive_timer = nearest_rabbit.reproductive_cooldown
             self.reproductive_timer = self.reproductive_cooldown
 
@@ -88,7 +90,7 @@ class Rabbit:
                 self.y += (nearest_grass.y - self.y) * self.speed / nearest_g_distance
         elif nearest_rabbit is not None and nearest_r_distance < self.radius and self.reproductive_timer <= 0:
             if nearest_r_distance < self.size + nearest_rabbit.size + 1:
-                self.reproduce(nearest_rabbit, rabbits)
+                self.reproduce(nearest_rabbit, rabbits, grass, foxes)
             else:
                 self.x += (nearest_rabbit.x - self.x) * self.speed / nearest_r_distance
                 self.y += (nearest_rabbit.y - self.y) * self.speed / nearest_r_distance
@@ -136,8 +138,20 @@ class Rabbit:
     def eat(self, grass, grass_list):
         grass_list.remove(grass)
         self.time_to_live += self.max_time_to_live
-        self.eaten = True
 
     def draw(self, screen, offsetx, offsety, scale):
         if int((self.x + offsetx) * scale) > 0 and int((self.y + offsety) * scale) > 0:
             pygame.draw.circle(screen, self.color, (int((self.x + offsetx)* scale), int((self.y + offsety) * scale)), self.size * scale)
+    
+    def alive(self):
+        if self.time_to_live <= 0 or self.eaten:
+            return False
+        else:
+            return True
+
+    def live(self, grass, foxes, rabbits):
+        clock = pygame.time.Clock()
+        while self.alive():
+            self.move(grass, foxes, rabbits)
+            clock.tick(60)
+

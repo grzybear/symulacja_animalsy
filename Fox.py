@@ -12,7 +12,6 @@ class Fox:
         self.size = FOX_SIZE
         self.speed = FOX_SPEED
         self.color = color
-        self.eaten = False
         self.map_width = map_width
         self.map_height = map_height
         self.reproduce = False
@@ -84,9 +83,8 @@ class Fox:
             self.y = self.map_height - self.size
 
     def eat(self, rabbit, rabbits):
-        rabbits.remove(rabbit)
+        rabbit.eaten = True
         self.time_to_live = self.max_time_to_live
-        self.eaten = True
 
     def draw(self, screen, offsetx, offsety, scale):
         if int((self.x + offsetx) * scale) > 0 and int((self.y + offsety) * scale) > 0:
@@ -96,3 +94,15 @@ class Fox:
         if self.reproduce:
             foxes.append(Fox(self.x, self.y))
             self.reproduce = False
+
+    def alive(self):
+        if self.time_to_live <= 0:
+            return False
+        else:
+            return True
+    
+    def live(self, foxes, rabbits):
+        clock = pygame.time.Clock()
+        while self.alive():
+            self.move(rabbits, foxes)
+            clock.tick(60)

@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from threading import Thread
 from Fox import Fox
 from Rabbit import Rabbit
 from Grass import Grass
@@ -56,12 +57,16 @@ grass = []
 for i in range(RABBIT_NUMBER):
     x = random.randrange(RABBIT_SIZE, WIDTH - RABBIT_SIZE)
     y = random.randrange(RABBIT_SIZE, HEIGHT - RABBIT_SIZE)
-    rabbits.append(Rabbit(x, y, WIDTH, HEIGHT, GREY))
+    rabbit = Rabbit(x, y, WIDTH, HEIGHT, GREY)
+    rabbits.append(rabbit)
+    Thread(target = rabbit.live, args = (grass, foxes, rabbits)).start()
 
 for i in range(FOX_NUMBER):
     x = random.randrange(FOX_SIZE, WIDTH - FOX_SIZE)
     y = random.randrange(FOX_SIZE, HEIGHT - FOX_SIZE)
-    foxes.append(Fox(x, y, WIDTH, HEIGHT, ORANGE))
+    fox = Fox(x, y, WIDTH, HEIGHT, ORANGE)
+    foxes.append(fox)
+    Thread(target = fox.live, args = (foxes, rabbits)).start()
 
 for i in range(GRASS_NUMBER):
     x = random.randrange(GRASS_SIZE, WIDTH - GRASS_SIZE)
@@ -109,12 +114,16 @@ while running:
     pygame.draw.rect(simulation, DARKGREEN, pygame.Rect(int(offsetx * scale), int(offsety * scale), int(WIDTH * scale), int(HEIGHT * scale)))
     # Move animals
     for rabbit in rabbits:
-        rabbit.move(grass, foxes, rabbits)
-        rabbit.draw(simulation, offsetx, offsety, scale)
+        if rabbit.alive() == False:
+            rabbits.remove(rabbit)
+        else:
+            rabbit.draw(simulation, offsetx, offsety, scale)
 
     for fox in foxes:
-        fox.move(rabbits, foxes)
-        fox.draw(simulation, offsetx, offsety, scale)
+        if fox.alive() == False:
+            foxes.remove(fox)
+        else:
+            fox.draw(simulation, offsetx, offsety, scale)
 
     for gej in grass:
         gej.draw(simulation, offsetx, offsety, scale)
